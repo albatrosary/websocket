@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+  <script>
+  /*
+  JSON から文字列の取り出し
+  var json = '{"name": "赤色","colorName": "red","colorCode": "#ff0000"}';
+  var parseJSON = jQuery . parseJSON( json );
+  var name = parseJSON . name;
+  jQuery( '#sample' ) . text( name );
+
+  オブジェクトをJSONへ変換
+  var obj = new Object();
+  obj['key1']='value1';
+  obj['key2']='value2';
+  obj['key3']='value3';
+  JSON文字列 = $.stringify(obj);
+
+  */
+
+  function nl2br(str) {
+    return str.replace(/[\n\r]/g, "<br />");
+  }
+
+  jQuery.extend({
+    stringify : function stringify(obj) {
+      var t = typeof (obj);
+      if (t != "object" || obj === null) {
+        // simple data type
+        if (t == "string") obj = '"' + obj + '"';
+        return String(obj);
+      } else {
+        // recurse array or object
+        var n, v, json = [], arr = (obj && obj.constructor == Array);
+ 
+        for (n in obj) {
+          v = obj[n];
+          t = typeof(v);
+          if (obj.hasOwnProperty(n)) {
+            if (t == "string") v = '"' + v + '"'; else if (t == "object" && v !== null) v = jQuery.stringify(v);
+            json.push((arr ? "" : '"' + n + '":') + String(v));
+          }
+        }
+        return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
+      }
+    }
+  });
+
+  $(function(){
+    // WebSocketサーバへ接続
+    var host = "ws://localhost:8888/";
+    var socket = new WebSocket(host);
+
+    /*
+    ready state
+    CONNECTING = 0;
+    OPEN = 1;
+    CLOSING = 2;
+    CLOSED = 3;
+
+    Read the site 'http://www.w3.org/TR/websockets/#the-websocket-interface'
+    */
+
+    console.log(socket.readyState);
+
+    socket.onerror = function() {
+      console.log("error");
+    }
+    // WebSocketサーバ接続イベント
+    socket.onopen = function(){
+      console.log(socket.readyState);
+    }
+    // WebScocketサーバ切断イベント
+    socket.onclose = function(){
+      console.log(socket.readyState);
+    }
+    // メッセージ受信イベントを処理
+    socket.onmessage = function(message){
+      console.log(socket.readyState + " " + message.data);
+
+      var json = $.parseJSON(nl2br(message.data));
+      if ($("#name").val() === json.name) {
+        var html = "<b><font color='#5f5f5f'>";
+      } else {
+        var html = "<b><font color='blue'>";
+      }
+      html = html + json.name + "</font></b>&nbsp;&nbsp;&nbsp;&nbsp;<font size='1'>[" + json.date +"]</font><br>" + json.message + "<br>";
+      $('#messagelist').append(html);
+    }
+
+
+    // 各イベント
+    //  
+    $(window).unload(function() {
+      socket.onclose();
+      console.log(socket.readyState);
+    });
+
+    // sendBtnクリック時の処理
+    $("#sendBtn").on("click",function(){
+
+      var obj = new Object();
+      obj['name'] = $("#name").val();
+      obj['message'] = $("#message").val();
+      obj['date'] = Date();
+
+      socket.send($.stringify(obj));
+      $("#message").val("");
+      $("#name").attr("readonly", true);
+    });
+
+  });
+  </script>
+</head>
+<body>
+  <h1>Chat!!</h1>
+  <input type="text" id="name" placeholder="user name" required /><br>
+  <textarea id="message" rows="6" cols="40" placeholder="message" required></textarea><br>
+  <button id="sendBtn">send</button>
+  <br><br>
+  <div id="messagelist"></div>
+</body>
+</html>
