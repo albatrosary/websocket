@@ -13,7 +13,6 @@ obj['key1']='value1';
 obj['key2']='value2';
 obj['key3']='value3';
 JSON文字列 = $.stringify(obj);
-
 */
 
 
@@ -24,9 +23,9 @@ var socket = new WebSocket(host);
 // worker.addEventListener('message'.. の message がイベントを結びつけている
 self.addEventListener('message', function(json) {
   // 処理の内容
+  
+  // WebSocket へのDATA送信
   socket.send(json.data);
-  // 処理を worker.addEventListener('message'.. で定義された処理へ投げ込む
-  // self.postMessage(e.data);
 }, false);
 
 /*
@@ -47,6 +46,7 @@ socket.onerror = function() {
 
 // WebSocketサーバ接続イベント
 socket.onopen = function(){
+  socket.send('Ping');
   // console.log(socket.readyState);
 }
 // WebScocketサーバ切断イベント
@@ -58,7 +58,5 @@ socket.onclose = function(){
 socket.onmessage = function(message){
   // 処理を worker.addEventListener('message'.. で定義された処理へ投げ込む
   self.postMessage(message.data);
-
-//  $('#messagelist').append(html);
 }
 

@@ -9,9 +9,9 @@
   // webworkerオブジェクトを生成
   var worker = new Worker("background.js");
 
-  function nl2br(str) {
-    return str.replace(/[\n\r]/g, "<br />");
-  }
+  //function nl2br(str) {
+  //  return str.replace(/[\n\r]/g, "<br />");
+  //}
 
   $.extend({
     stringify : function stringify(obj) {
@@ -34,9 +34,12 @@
         }
         return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
       }
+    },
+
+    nl2br : function nl2br(str) {
+      return str.replace(/[\n\r]/g, "<br />");
     }
   });
-
 
   $(function(){
 
@@ -49,7 +52,9 @@
     // sendBtnクリック時の処理
     $("#sendBtn").on("click", function(){
 
+      // JSONの作成
       var obj = new Object();
+
       obj['name'] = $("#name").val();
       obj['message'] = $("#message").val();
       obj['date'] = Date();
@@ -68,7 +73,8 @@
 
   // メッセージが webworker から戻ってきたときの処理
   worker.addEventListener('message', function(message) {
-    var json = $.parseJSON(nl2br(message.data));
+
+    var json = $.parseJSON($.nl2br(message.data));
     if ($("#name").val() === json.name) {
       var html = "<b><font color='#5f5f5f'>";
     } else {
@@ -77,6 +83,7 @@
     html = html + json.name + "</font></b>&nbsp;&nbsp;&nbsp;&nbsp;<font size='1'>[" + json.date +"]</font><br>" + json.message + "<br>";
 
     $('#messagelist').append(html);
+
   }, false);
   </script>
 </head>
