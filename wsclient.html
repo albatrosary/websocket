@@ -5,21 +5,9 @@
   <title>Document</title>
   <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
   <script>
-  /*
-  JSON から文字列の取り出し
-  var json = '{"name": "赤色","colorName": "red","colorCode": "#ff0000"}';
-  var parseJSON = jQuery . parseJSON( json );
-  var name = parseJSON . name;
-  jQuery( '#sample' ) . text( name );
 
-  オブジェクトをJSONへ変換
-  var obj = new Object();
-  obj['key1']='value1';
-  obj['key2']='value2';
-  obj['key3']='value3';
-  JSON文字列 = $.stringify(obj);
-
-  */
+  // webworkerオブジェクトを生成
+  var worker = new Worker("background.js");
 
   function nl2br(str) {
     return str.replace(/[\n\r]/g, "<br />");
@@ -35,7 +23,7 @@
       } else {
         // recurse array or object
         var n, v, json = [], arr = (obj && obj.constructor == Array);
- 
+
         for (n in obj) {
           v = obj[n];
           t = typeof(v);
@@ -49,58 +37,17 @@
     }
   });
 
+
   $(function(){
-    // WebSocketサーバへ接続
-    var host = "ws://localhost:8888/";
-    var socket = new WebSocket(host);
-
-    /*
-    ready state
-    CONNECTING = 0;
-    OPEN = 1;
-    CLOSING = 2;
-    CLOSED = 3;
-
-    Read the site 'http://www.w3.org/TR/websockets/#the-websocket-interface'
-    */
-
-    console.log(socket.readyState);
-
-    socket.onerror = function() {
-      console.log("error");
-    }
-    // WebSocketサーバ接続イベント
-    socket.onopen = function(){
-      console.log(socket.readyState);
-    }
-    // WebScocketサーバ切断イベント
-    socket.onclose = function(){
-      console.log(socket.readyState);
-    }
-    // メッセージ受信イベントを処理
-    socket.onmessage = function(message){
-      console.log(socket.readyState + " " + message.data);
-
-      var json = $.parseJSON(nl2br(message.data));
-      if ($("#name").val() === json.name) {
-        var html = "<b><font color='#5f5f5f'>";
-      } else {
-        var html = "<b><font color='blue'>";
-      }
-      html = html + json.name + "</font></b>&nbsp;&nbsp;&nbsp;&nbsp;<font size='1'>[" + json.date +"]</font><br>" + json.message + "<br>";
-      $('#messagelist').append(html);
-    }
-
 
     // 各イベント
-    //  
-    $(window).unload(function() {
-      socket.onclose();
-      console.log(socket.readyState);
-    });
+    // $(window).unload(function() {
+    //  socket.onclose();
+    //  console.log(socket.readyState);
+    // });
 
     // sendBtnクリック時の処理
-    $("#sendBtn").on("click",function(){
+    $("#sendBtn").on("click", function(){
 
       var obj = new Object();
       obj['name'] = $("#name").val();
@@ -109,12 +56,28 @@
 
       var json = $.stringify(obj);
 
-      socket.send(json);
+      // webworker の実行
+      worker.postMessage(json);
+
+      // socket.send(json);
       $("#message").val("");
       $("#name").attr("readonly", true);
     });
 
   });
+
+  // メッセージが webworker から戻ってきたときの処理
+  worker.addEventListener('message', function(message) {
+    var json = $.parseJSON(nl2br(message.data));
+    if ($("#name").val() === json.name) {
+      var html = "<b><font color='#5f5f5f'>";
+    } else {
+      var html = "<b><font color='blue'>";
+    }
+    html = html + json.name + "</font></b>&nbsp;&nbsp;&nbsp;&nbsp;<font size='1'>[" + json.date +"]</font><br>" + json.message + "<br>";
+
+    $('#messagelist').append(html);
+  }, false);
   </script>
 </head>
 <body>
@@ -122,6 +85,7 @@
   <input type="text" id="name" placeholder="user name" required /><br>
   <textarea id="message" rows="6" cols="40" placeholder="message" required></textarea><br>
   <button id="sendBtn">send</button>
+  <!-- <button id="workerBtn">worker</button> -->
   <br><br>
   <div id="messagelist"></div>
 </body>
