@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" manifest="ws.appcache">
 <head>
   <meta charset="UTF-8">
   <title>Document</title>
@@ -25,7 +25,7 @@
     return str.replace(/[\n\r]/g, "<br />");
   }
 
-  jQuery.extend({
+  $.extend({
     stringify : function stringify(obj) {
       var t = typeof (obj);
       if (t != "object" || obj === null) {
@@ -107,7 +107,9 @@
       obj['message'] = $("#message").val();
       obj['date'] = Date();
 
-      socket.send($.stringify(obj));
+      var json = $.stringify(obj);
+
+      socket.send(json);
       $("#message").val("");
       $("#name").attr("readonly", true);
     });

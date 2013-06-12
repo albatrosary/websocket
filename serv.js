@@ -1,10 +1,22 @@
+var httpport = 80;
+
+process.argv.forEach(function (val, index, array) {
+  // console.log(index + ': ' + val);
+  if(index == 2 ) {
+    httpport = val;
+  }
+});
+
 // http 待ち受け
 var connect = require('connect');
 
+var contextpath = __dirname;
+console.log("contextpath:" + contextpath + " port:" + httpport)
+
 connect.createServer(
   // 実行ディレクトリ
-  connect.static(__dirname)
-).listen(80);
+  connect.static(contextpath)
+).listen(httpport);
 
 
 // websocket 待ち受け
@@ -35,3 +47,5 @@ server.on("connection", function(socket) {
 
 
 });
+
+
